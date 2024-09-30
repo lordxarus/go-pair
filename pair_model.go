@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/tmc/langchaingo/llms"
 )
@@ -21,9 +22,8 @@ type pairModel struct {
 	model llms.Model
 	hist  []llms.MessageContent
 	// addHistFn modifies hist in place
-	ctx      context.Context
-	streamFn func(context.Context, []byte) error
-	llmOpts  []llms.CallOption
+	ctx     context.Context
+	llmOpts []llms.CallOption
 }
 
 type ModelOption func(*pairModel)
@@ -73,4 +73,42 @@ func NewPairModel(model llms.Model, opts ...ModelOption) *pairModel {
 	}
 
 	return pm
+}
+
+type TokenTracker struct {
+	tokens    int
+	startTime time.Time
+	ticker    *time.Ticker
+}
+
+func NewTokenTracker() *TokenTracker {
+	tt := &TokenTracker{
+		startTime: time.Now(),
+		ticker:    time.NewTicker(time.Minute),
+	}
+
+	go func() {
+		for range tt.ticker.C {
+			tt.Reset()
+		}
+	}()
+
+	return tt
+}
+
+func (tt *TokenTracker) AddTokens(count int) {
+	tt.tokens += count
+}
+
+func (tt *TokenTracker) TokensPerMinute() float64 {
+	elapsed := time.Since(tt.startTime).Minutes()
+	if elapsed == 0 {
+		return 0
+	}
+	return float64(tt.tokens) / elapsed
+}
+
+func (tt *TokenTracker) Reset() {
+	tt.tokens = 0
+	tt.startTime = time.Now()
 }
