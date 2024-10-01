@@ -1,4 +1,6 @@
+# sorry for leaving this a mess ;P
 .env
 prompts/attacker/homegrown.txt
 *.toml
 .vscode/
+urls.txt

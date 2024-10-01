@@ -46,8 +46,8 @@ func WithCallOpts(opts ...llms.CallOption) ModelOption {
 	}
 }
 
-func (pm *PairModel) Query(q string) (string, error) {
-	pm.Hist = append(pm.Hist, llms.TextParts(llms.ChatMessageTypeHuman, q))
+// Call the model with the current history
+func (pm *PairModel) Call() (string, error) {
 	completion, err := pm.Model.GenerateContent(pm.Ctx, pm.Hist, pm.LlmOpts...)
 	if err != nil {
 		return "", fmt.Errorf("failed during query: %w", err)
@@ -55,9 +55,28 @@ func (pm *PairModel) Query(q string) (string, error) {
 	if len(completion.Choices) == 0 {
 		return "", fmt.Errorf("no completion choices")
 	}
-	pm.Hist = append(pm.Hist, llms.TextParts(llms.ChatMessageTypeAI, completion.Choices[0].Content))
 
 	return completion.Choices[0].Content, nil
+}
+
+// Just adds the query to the history and calls the model
+func (pm *PairModel) Query(q string) (string, error) {
+	pm.AppendHist(llms.TextParts(llms.ChatMessageTypeHuman, q))
+	return pm.Call()
+}
+
+// Appends the response to the history
+func (pm *PairModel) QueryAndAppend(q string) (string, error) {
+	q, err := pm.Query(q)
+	if err != nil {
+		return "", fmt.Errorf("failed to query and append: %w", err)
+	}
+	pm.AppendHist(llms.TextParts(llms.ChatMessageTypeAI, q))
+	return q, nil
+}
+
+func (pm *PairModel) AppendHist(m llms.MessageContent) {
+	pm.Hist = append(pm.Hist, m)
 }
 
 func NewPairModel(model llms.Model, opts ...ModelOption) *PairModel {

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/BurntSushi/toml"
+	"github.com/tmc/langchaingo/llms/huggingface"
 	"github.com/tmc/langchaingo/llms/openai"
 )
 
@@ -26,11 +27,22 @@ type Model struct {
 	ModelName string
 }
 
-func (conf *Model) ToLlm() *openai.LLM {
+func (conf *Model) ToOaiLlm() *openai.LLM {
 	m, err := openai.New(
 		openai.WithModel(conf.ModelName),
 		openai.WithBaseURL(conf.BaseUrl),
 		openai.WithToken(os.Getenv(conf.ApiEnvVar)),
+	)
+	if err != nil {
+		log.Fatalf("failed to create %s model: %s", conf.Type.String(), err.Error())
+	}
+	return m
+}
+
+func (conf *Model) ToHfLlm() *huggingface.LLM {
+	m, err := huggingface.New(
+		huggingface.WithModel(conf.ModelName),
+		huggingface.WithToken(os.Getenv(conf.ApiEnvVar)),
 	)
 	if err != nil {
 		log.Fatalf("failed to create %s model: %s", conf.Type.String(), err.Error())
