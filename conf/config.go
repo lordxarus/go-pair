@@ -2,9 +2,11 @@ package conf
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/BurntSushi/toml"
+	"github.com/tmc/langchaingo/llms/openai"
 )
 
 type ModelType int
@@ -16,12 +18,28 @@ const (
 	TargetType
 )
 
-type Config struct {
-	Type ModelType `toml:"type"`
+type Model struct {
+	Type ModelType
 	// This is the env variable that will be loaded not the key itself.
-	APIEnvVar string `toml:"api_key"`
-	BaseURL   string `toml:"base_url"`
-	ModelName string `toml:"model_version"`
+	ApiEnvVar string
+	BaseUrl   string
+	ModelName string
+}
+
+func (conf *Model) ToLlm() *openai.LLM {
+	m, err := openai.New(
+		openai.WithModel(conf.ModelName),
+		openai.WithBaseURL(conf.BaseUrl),
+		openai.WithToken(os.Getenv(conf.ApiEnvVar)),
+	)
+	if err != nil {
+		log.Fatalf("failed to create %s model: %s", conf.Type.String(), err.Error())
+	}
+	return m
+}
+
+type Config struct {
+	Models map[string]*Model
 }
 
 func LoadConfig(path string) (*Config, error) {
