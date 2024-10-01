@@ -1,4 +1,4 @@
-package main
+package pair
 
 import (
 	"context"
@@ -8,64 +8,64 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-type attTmplVals struct {
+type AttTmplVals struct {
 	Objective string
 	Start     string
 }
 
-type judTmplVals struct {
+type JudTmplVals struct {
 	User   string
 	Target string
 }
 
-type pairModel struct {
-	model llms.Model
-	hist  []llms.MessageContent
+type PairModel struct {
+	Model llms.Model
+	Hist  []llms.MessageContent
 	// addHistFn modifies hist in place
-	ctx     context.Context
-	llmOpts []llms.CallOption
+	Ctx     context.Context
+	LlmOpts []llms.CallOption
 }
 
-type ModelOption func(*pairModel)
+type ModelOption func(*PairModel)
 
 func WithCtx(ctx context.Context) ModelOption {
-	return func(pm *pairModel) {
-		pm.ctx = ctx
+	return func(pm *PairModel) {
+		pm.Ctx = ctx
 	}
 }
 
 func WithHist(hist []llms.MessageContent) ModelOption {
-	return func(pm *pairModel) {
-		pm.hist = hist
+	return func(pm *PairModel) {
+		pm.Hist = hist
 	}
 }
 
 func WithCallOpts(opts ...llms.CallOption) ModelOption {
-	return func(pm *pairModel) {
-		pm.llmOpts = append(pm.llmOpts, opts...)
+	return func(pm *PairModel) {
+		pm.LlmOpts = append(pm.LlmOpts, opts...)
 	}
 }
 
-func (pm *pairModel) Query(q string) (string, error) {
-	pm.hist = append(pm.hist, llms.TextParts(llms.ChatMessageTypeHuman, q))
-	completion, err := pm.model.GenerateContent(pm.ctx, pm.hist, pm.llmOpts...)
+func (pm *PairModel) Query(q string) (string, error) {
+	pm.Hist = append(pm.Hist, llms.TextParts(llms.ChatMessageTypeHuman, q))
+	completion, err := pm.Model.GenerateContent(pm.Ctx, pm.Hist, pm.LlmOpts...)
 	if err != nil {
 		return "", fmt.Errorf("failed during query: %w", err)
 	}
 	if len(completion.Choices) == 0 {
 		return "", fmt.Errorf("no completion choices")
 	}
-	pm.hist = append(pm.hist, llms.TextParts(llms.ChatMessageTypeAI, completion.Choices[0].Content))
+	pm.Hist = append(pm.Hist, llms.TextParts(llms.ChatMessageTypeAI, completion.Choices[0].Content))
 
 	return completion.Choices[0].Content, nil
 }
 
-func NewPairModel(model llms.Model, opts ...ModelOption) *pairModel {
-	pm := &pairModel{
-		model:   model,
-		hist:    []llms.MessageContent{},
-		ctx:     context.Background(),
-		llmOpts: []llms.CallOption{},
+func NewPairModel(model llms.Model, opts ...ModelOption) *PairModel {
+	pm := &PairModel{
+		Model:   model,
+		Hist:    []llms.MessageContent{},
+		Ctx:     context.Background(),
+		LlmOpts: []llms.CallOption{},
 	}
 
 	for _, opt := range opts {
