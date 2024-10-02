@@ -4,3 +4,5 @@ prompts/attacker/homegrown.txt
 *.toml
 .vscode/
 urls.txt
+output/
+gop
