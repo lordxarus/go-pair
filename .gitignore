@@ -5,4 +5,6 @@ prompts/attacker/homegrown.txt
 .vscode/
 urls.txt
 output/
-gop
+gop-bin
+run.sh 
+bd.sh
