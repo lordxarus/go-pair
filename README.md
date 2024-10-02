@@ -10,8 +10,8 @@ This project aims to automate the process of finding jailbreaks for black box mo
 go install github.com/lordxarus/go-pair/cmd/gop
 ```
 
-- Place config in the same folder as the binary, named config.toml
 ## Example Config
+- config.toml currently needs to be in the cwd of the binary 
 ```toml 
 [Models.Attacker]
 Type = 0
