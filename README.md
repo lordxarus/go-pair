@@ -1,9 +1,6 @@
 # PAIR in Go
 An implementation of [PAIR](https://jailbreaking-llms.github.io/)
 
-## Introduction 
-This project aims to automate the process of finding jailbreaks for black box models
-
 ## Installation 
 
 ```sh 
